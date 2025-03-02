@@ -11,7 +11,7 @@ const Signup = () => {
     email: '',
     tel: '',
     password: ''
-  });
+  }); 
   const [passwordStrength, setPasswordStrength] = useState(0);
   const navigate = useNavigate();
 
@@ -153,7 +153,7 @@ const Signup = () => {
                 className="mt-2"
               >
                 <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div 
+                  <div   
                     className={`h-full ${strengthLabels[passwordStrength]?.color} 
                     ${strengthLabels[passwordStrength]?.width} transition-all duration-500`}
                   />

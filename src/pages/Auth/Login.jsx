@@ -4,7 +4,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { FaLock, FaEnvelope } from 'react-icons/fa';
-import {jwtDecode}from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
+import { getApiBaseUrl } from '../../utils/apiBaseUrl';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -14,10 +15,8 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:4000/api/auth/login', {
-        email,
-        password
-      });
+      const baseUrl = getApiBaseUrl();
+      const response = await axios.post(`${baseUrl}/api/auth/login`, { email, password });
       
       localStorage.setItem('token', response.data.token);
       const decoded = jwtDecode(response.data.token);

@@ -1,31 +1,32 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Swal from 'sweetalert2';
-import { FaShoppingCart, FaBoxOpen } from 'react-icons/fa';
+import { FaShoppingCart, FaBoxOpen, FaSpinner, FaChartLine, FaMoneyBillWave, FaRegSmileWink } from 'react-icons/fa';
 import axios from 'axios';
 
 const SellerDashboard = () => {
-  // État pour le nom et l'id du vendeur connecté
   const [sellerName, setSellerName] = useState("");
   const [sellerId, setSellerId] = useState(null);
 
   // Liste initiale des produits avec leur stock (les vendeurs ne modifient pas directement ces valeurs)
   const [products, setProducts] = useState([]);
   
-  // États pour le formulaire de vente
   const [selectedProduct, setSelectedProduct] = useState('');
   const [saleQuantity, setSaleQuantity] = useState('');
   
-  // Liste des ventes / commandes enregistrées
   const [orders, setOrders] = useState([]);
   
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
   const API_URL = 'http://localhost:4000/api';
 
-  // Fonction pour gérer la déconnexion
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    // Vous pouvez rediriger l'utilisateur vers la page de connexion
-    window.location.href = '/login';
+    setIsLoggingOut(true);
+    // Affichage du spinner pendant 3 secondes, puis la déconnexion
+    setTimeout(() => {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }, 3000);
   };
 
   useEffect(() => {
@@ -68,7 +69,6 @@ const SellerDashboard = () => {
     fetchData();
   }, []);
 
-  // Enregistrement d'une vente
   const handleSaleSubmit = async (e) => {
     e.preventDefault();
 
@@ -114,7 +114,6 @@ const SellerDashboard = () => {
     }
     
     try {
-      // Appel au nouvel endpoint pour créer la commande/vente
       await axios.post(`${API_URL}/orders`, {
         orderDetails: [{
           product_id: productId,
@@ -163,25 +162,87 @@ const SellerDashboard = () => {
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -50 }}
-      className="min-h-screen bg-gray-100 py-4"
+      className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8"
     >
-      <div className="max-w-7xl mx-auto px-4 space-y-6">
-        {/* En-tête sticky */}
-        <header className="bg-white p-4 rounded shadow-md flex justify-between items-center sticky top-0 z-10">
-          <h1 className="text-2xl font-bold">Dashboard Vendeur</h1>
+      <div className="max-w-7xl mx-auto px-4 space-y-8">
+        {/* En-tête amélioré */}
+        <motion.header 
+          className="bg-white p-6 rounded-2xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-4"
+          whileHover={{ scale: 1.01 }}
+        >
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-blue-100 rounded-full">
+              <FaChartLine className="text-blue-600 text-2xl" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Tableau de Bord Vendeur</h1>
+              {sellerName && (
+                <p className="text-gray-600 flex items-center gap-1">
+                  <FaRegSmileWink /> Bonjour {sellerName}
+                </p>
+              )}
+            </div>
+          </div>
           <button 
             onClick={handleLogout} 
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition-colors duration-300"
+            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition-colors duration-300 flex items-center"
+            disabled={isLoggingOut}
           >
-            Déconnexion
+            {isLoggingOut ? (
+              <>
+                <FaSpinner className="animate-spin mr-2" />
+                Déconnexion... 
+              </>
+            ) : "Déconnexion"}
           </button>
-        </header>
-        
-        {/* Informations du vendeur */}
-        <p className="text-center text-lg font-medium">
-          Connecté en tant que : <span className="font-bold">{sellerName}</span>
-        </p>
-        
+        </motion.header>
+
+        {/* Cartes de statistiques */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <motion.div
+            className="bg-white p-6 rounded-xl shadow-lg flex items-center gap-4"
+            whileHover={{ y: -5 }}
+          >
+            <div className="p-3 bg-green-100 rounded-full">
+              <FaShoppingCart className="text-green-600 text-2xl" />
+            </div>
+            <div>
+              <p className="text-gray-500">Ventes totales</p>
+              <p className="text-2xl font-bold">{userOrders.length}</p>
+            </div>
+          </motion.div>
+          
+          <motion.div
+            className="bg-white p-6 rounded-xl shadow-lg flex items-center gap-4"
+            whileHover={{ y: -5 }}
+          >
+            <div className="p-3 bg-blue-100 rounded-full">
+              <FaMoneyBillWave className="text-blue-600 text-2xl" />
+            </div>
+            <div>
+              <p className="text-gray-500">Chiffre d&apos;affaires</p>
+              <p className="text-2xl font-bold">
+                {userOrders.reduce((acc, order) => acc + (order.prix_total || 0), 0)} Ar
+              </p>
+            </div>
+          </motion.div>
+          
+          <motion.div
+            className="bg-white p-6 rounded-xl shadow-lg flex items-center gap-4"
+            whileHover={{ y: -5 }}
+          >
+            <div className="p-3 bg-purple-100 rounded-full">
+              <FaBoxOpen className="text-purple-600 text-2xl" />
+            </div>
+            <div>
+              <p className="text-gray-500">Produits en stock</p>
+              <p className="text-2xl font-bold">
+                {products.reduce((acc, product) => acc + product.quantite, 0)}
+              </p>
+            </div>
+          </motion.div>
+        </div>
+
         {/* Sections Vente et Stocks côte à côte */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Section vente d'un produit */}
@@ -205,7 +266,7 @@ const SellerDashboard = () => {
                   <option value="">-- Sélectionnez un produit --</option>
                   {products.map(product => (
                     <option key={product.id} value={product.id}>
-                      {product.nom}
+                      {product.nom} • {product.quantite} • ({product.prix} Ar)•
                     </option>
                   ))}
                 </select>
@@ -240,7 +301,7 @@ const SellerDashboard = () => {
             className="bg-white p-6 rounded shadow hover:shadow-xl transition-shadow"
           >
             <h2 className="text-xl font-semibold mb-4 flex items-center">
-              <FaBoxOpen className="mr-2" />
+              <FaShoppingCart className="mr-2" />
               Stocks Actuels
             </h2>
             <div className="overflow-x-auto">
@@ -264,7 +325,6 @@ const SellerDashboard = () => {
           </motion.div>
         </div>
 
-        {/* Section commandes/ventes avec conteneur scrollable pour limiter la hauteur */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -279,7 +339,7 @@ const SellerDashboard = () => {
               <thead className="bg-gray-200">
                 <tr>
                   <th className="py-2 px-4 border">ID Commande</th>
-                  <th className="py-2 px-4 border">Statut</th>
+                  <th className="py-2 px-4 border">Produit</th>
                   <th className="py-2 px-4 border">Prix total</th>
                   <th className="py-2 px-4 border">Quantité Vendue</th>
                 </tr>
@@ -288,18 +348,22 @@ const SellerDashboard = () => {
                 {userOrders.length > 0 ? (
                   userOrders.map(order => {
                     let soldQuantity = 0;
+                    let productName = "Inconnu";
                     if (order.OrderDetails && order.OrderDetails.length > 0) {
                       const detail = order.OrderDetails[0];
                       const product = products.find(p => p.id === detail.product_id);
-                      if (product && product.prix > 0) {
-                        const orderTotal = detail.quantite * detail.unit_price;
-                        soldQuantity = orderTotal / product.prix;
+                      if (product) {
+                        productName = product.nom;
+                        if (product.prix > 0) {
+                          const orderTotal = detail.quantite * detail.unit_price;
+                          soldQuantity = orderTotal / product.prix;
+                        }
                       }
                     }
                     return (
                       <tr key={order.id} className="text-center hover:bg-gray-50">
                         <td className="py-2 px-4 border">{order.id}</td>
-                        <td className="py-2 px-4 border">{order.status}</td>
+                        <td className="py-2 px-4 border">{productName}</td>
                         <td className="py-2 px-4 border">
                           {order.OrderDetails && order.OrderDetails.length > 0
                             ? order.OrderDetails[0].quantite * order.OrderDetails[0].unit_price

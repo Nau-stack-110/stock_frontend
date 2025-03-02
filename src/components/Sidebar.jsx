@@ -2,32 +2,35 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { 
-  FaTachometerAlt, 
   FaShoppingCart, 
   FaChartLine, 
   FaBell, 
   FaUsers, 
   FaBars, 
   FaTimes, 
-  FaSignOutAlt 
+  FaSignOutAlt,
+  FaSpinner
 } from 'react-icons/fa';
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const menuItems = [
-    { name: 'Dashboard', icon: <FaTachometerAlt />, path: '/' },
-    { name: 'Commandes', icon: <FaShoppingCart />, path: '/orders' },
-    { name: 'Rapports', icon: <FaChartLine />, path: '/reports' },
+    { name: 'Rapports', icon: <FaChartLine />, path: '/' },
     { name: 'Stock & Alertes', icon: <FaBell />, path: '/alerts' },
     { name: 'Utilisateurs', icon: <FaUsers />, path: '/users' },
+    { name: 'Commandes', icon: <FaShoppingCart />, path: '/orders' },
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
+    setIsLoading(true);
+    setTimeout(() => {
+      localStorage.removeItem('token');
+      navigate('/login');
+    }, 3000);
   };
 
   return (
@@ -41,7 +44,7 @@ const Sidebar = () => {
       </button>
 
       <aside
-        className={`fixed md:relative z-40 flex flex-col justify-between bg-gradient-to-b from-gray-800 to-gray-900 text-white min-h-screen transition-all duration-300 ease-in-out
+        className={`fixed z-40 flex flex-col justify-between bg-gradient-to-b from-gray-800 to-gray-900 text-white min-h-screen transition-all duration-300 ease-in-out
           ${collapsed ? "w-16" : "w-64"} 
           ${isMobileMenuOpen ? "left-0" : "-left-full md:left-0"}`}
       >
@@ -91,13 +94,14 @@ const Sidebar = () => {
         <div className="p-2 border-t border-gray-700">
           <button
             onClick={handleLogout}
-            className="flex items-center w-full p-3 rounded-lg hover:bg-gray-700 transition-colors"
+            className="flex items-center w-full p-3 rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
             title="Déconnexion"
+            disabled={isLoading}
           >
             <div className="mr-3 text-xl text-red-400">
-              <FaSignOutAlt />
+              {isLoading ? <FaSpinner className="animate-spin" /> : <FaSignOutAlt />}
             </div>
-            {!collapsed && <span className="text-sm">Déconnexion</span>}
+            {!collapsed && <span className="text-sm">{isLoading ? "Déconnexion en cours..." : "Déconnexion"}</span>}
           </button>
         </div>
       </aside>

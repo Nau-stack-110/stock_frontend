@@ -13,7 +13,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { FaChartBar, FaDolly } from 'react-icons/fa';
+import { FaChartBar, FaDolly, FaChartLine, FaBoxOpen, FaCoins, FaExclamationTriangle } from 'react-icons/fa';
 
 ChartJS.register(
   CategoryScale,
@@ -239,55 +239,165 @@ const Reports = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.8 }}
-      className="p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="p-4 lg:p-6 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen"
     >
-      <h1 className="text-3xl font-bold mb-6">Rapports</h1>
-
-      {/* Nouveau sélecteur de période */}
-      <div className="mb-6 flex justify-end">
-        <select 
-          value={timePeriod}
-          onChange={(e) => setTimePeriod(e.target.value)}
-          className="p-2 border rounded-md"
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* En-tête amélioré */}
+        <motion.div
+          initial={{ y: -20 }}
+          animate={{ y: 0 }}
+          className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center"
         >
-          <option value="daily">Journalier</option>
-          <option value="weekly">Hebdomadaire</option>
-          <option value="monthly">Mensuel</option>
-        </select>
-      </div>
+          {/* Titre à gauche */}
+          <div className="md:flex-1">
+            <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-3">
+              <FaChartLine className="text-blue-600" /> Tableau de Bord Analytique
+            </h1>
+          </div>
+          
+          {/* Contrôles à droite */}
+          <div className="flex flex-col gap-4 md:items-end">
+            
+            {/* Sélecteur de période */}
+            <motion.div 
+              className="flex gap-2 bg-white p-2 mt-8 rounded-xl shadow-sm w-fit"
+              whileHover={{ scale: 1.02 }}
+            >
+              {['daily', 'weekly', 'monthly'].map((period) => (
+                <button
+                  key={period}
+                  onClick={() => setTimePeriod(period)}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    timePeriod === period 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-gray-100 hover:bg-gray-200'
+                  }`}
+                >
+                  {period === 'daily' ? 'Journalier' : period === 'weekly' ? 'Hebdo' : 'Mensuel'}
+                </button>
+              ))}
+            </motion.div>
+          </div>
+        </motion.div>
 
-      {/* Cartes d'indicateurs clés */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        {cartes.map((carte, index) => (
+        {/* Cartes de statistiques améliorées */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {cartes.map((carte, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow"
+              whileHover={{ y: -5 }}
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-blue-100 rounded-full">
+                  {carte.icon}
+                </div>
+                <div>
+                  <p className="text-gray-500 text-sm">{carte.title}</p>
+                  <p className="text-2xl font-bold mt-1">{carte.value}</p>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Section des graphiques améliorée */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <motion.div
-            key={index}
-            className="flex items-center p-4 bg-white rounded shadow hover:shadow-lg transition-shadow"
-            whileHover={{ scale: 1.05 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl shadow-xl p-6"
           >
-            <div className="mr-4">{carte.icon}</div>
-            <div>
-              <p className="text-gray-500">{carte.title}</p>
-              <p className="text-xl font-semibold">{carte.value}</p>
+            <div className="flex items-center gap-3 mb-6">
+              <FaCoins className="text-green-500 text-2xl" />
+              <h2 className="text-xl font-semibold">Évolution des Ventes</h2>
+            </div>
+            <div className="h-[400px]">
+              {salesData ? (
+                <Line 
+                  data={salesData} 
+                  options={{ 
+                    ...salesOptions,
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      ...salesOptions.plugins,
+                      legend: { display: false }
+                    }
+                  }} 
+                />
+              ) : (
+                <div className="h-full flex items-center justify-center text-gray-500">
+                  Chargement des données...
+                </div>
+              )}
             </div>
           </motion.div>
-        ))}
-      </div>
 
-      {/* Section des graphiques modifiée */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <motion.div className="bg-white rounded shadow p-4" whileHover={{ scale: 1.02 }}>
-          {salesData ? (
-            <Line data={salesData} options={salesOptions} />
-          ) : (
-            <div className="text-center p-4">Chargement des données de vente...</div>
-          )}
-        </motion.div>
-        {/* Graphique des stocks critiques */}
-        <motion.div className="bg-white rounded shadow p-4" whileHover={{ scale: 1.02 }}>
-          <Bar data={stockData} options={stockOptions} />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white rounded-2xl shadow-xl p-6"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <FaExclamationTriangle className="text-red-500 text-2xl" />
+              <h2 className="text-xl font-semibold">Alertes de Stock</h2>
+            </div>
+            <div className="h-[400px]">
+              <Bar 
+                data={stockData} 
+                options={{
+                  ...stockOptions,
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    ...stockOptions.plugins,
+                    legend: { display: false }
+                  }
+                }} 
+              />
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Section supplémentaire pour les produits critiques */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="bg-white rounded-2xl shadow-xl p-6"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <FaBoxOpen className="text-orange-500 text-2xl" />
+            <h2 className="text-xl font-semibold">Produits Requérant Attention</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {criticalProducts.map((product, index) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: index * 0.1 }}
+                className="p-4 border rounded-lg hover:bg-gray-50"
+              >
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium">{product.nom}</h3>
+                  <span className={`text-sm ${
+                    product.quantite < 10 ? 'text-red-500' : 'text-orange-500'
+                  }`}>
+                    {product.quantite} unités
+                  </span>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">{product.categorie}</p>
+              </motion.div>
+            ))}
+          </div>
         </motion.div>
       </div>
     </motion.div>

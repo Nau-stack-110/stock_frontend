@@ -1,6 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AdminLayout from './layouts/AdminLayout';
-import Dashboard from './pages/Dashboard';
 import Orders from './pages/Orders';
 import Reports from './pages/Reports';
 import StockAlerts from './pages/StockAlerts';
@@ -34,9 +33,8 @@ const App = () => {
             <AdminLayout />
           </PrivateRoute>
         }>
-          <Route index element={<Dashboard />} />
           <Route path="orders" element={<Orders />} />
-          <Route path="reports" element={<Reports />} />
+          <Route index  element={<Reports />} />
           <Route path="alerts" element={<StockAlerts />} />
           <Route path="users" element={<Users />} />
         </Route>
