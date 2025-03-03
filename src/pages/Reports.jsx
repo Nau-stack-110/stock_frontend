@@ -13,7 +13,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { FaChartBar, FaDolly, FaChartLine, FaBoxOpen, FaCoins, FaExclamationTriangle } from 'react-icons/fa';
+import { FaChartBar, FaDolly, FaChartLine, FaBoxOpen, FaCoins, FaExclamationTriangle, FaUser } from 'react-icons/fa';
 
 ChartJS.register(
   CategoryScale,
@@ -33,6 +33,7 @@ const Reports = () => {
   const [salesData, setSalesData] = useState(null);
   const [timePeriod, setTimePeriod] = useState('daily');
   const [stockRotation, setStockRotation] = useState([]);
+  const [topSeller, setTopSeller] = useState(null);
 
   // Adresse de base de l'API backend
   const API_URL = 'http://localhost:4000/api';
@@ -41,15 +42,37 @@ const Reports = () => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
-        const [bestSellerResponse, productsResponse] = await Promise.all([
+        const [bestSellerResponse, productsResponse, ordersResponse] = await Promise.all([
           axios.get(`${API_URL}/reports/best-seller-products/`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
           axios.get(`${API_URL}/products/`, {
             headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get(`${API_URL}/orders/`, {
+            headers: { Authorization: `Bearer ${token}` }
           })
         ]);
-        // Récupérer uniquement le premier élément du tableau (le meilleur vendeur)
+
+        // Calcul du top vendeur
+        const sellerSales = ordersResponse.data.reduce((acc, order) => {
+          const sellerId = order.User?.id;
+          if (sellerId) {
+            acc[sellerId] = (acc[sellerId] || 0) + 1;
+          }
+          return acc;
+        }, {});
+
+        const topSellerEntry = Object.entries(sellerSales).sort((a, b) => b[1] - a[1])[0];
+        const topSellerData = ordersResponse.data.find(order => 
+          order.User?.id === parseInt(topSellerEntry?.[0], 10)
+        )?.User;
+
+        setTopSeller(topSellerData ? { 
+          name: topSellerData.name, 
+          salesCount: topSellerEntry?.[1] 
+        } : null);
+
         setBestSeller(bestSellerResponse.data[0]);
         setProducts(productsResponse.data);
       } catch (error) {
@@ -122,6 +145,12 @@ const Reports = () => {
       title: 'Produit le plus vendu',
       value: bestSeller ? bestSeller.Product.nom : 'Chargement...',
       icon: <FaChartBar className="text-4xl text-blue-500" />,
+    },
+    {
+      title: 'Top Vendeur',
+      value: topSeller ? topSeller.name : 'Non disponible',
+      icon: <FaUser className="text-4xl text-purple-500" />,
+      subInfo: topSeller && `(${topSeller.salesCount} ventes)`
     },
     {
       title: 'Rotation de stocks',
@@ -301,6 +330,7 @@ const Reports = () => {
                 <div>
                   <p className="text-gray-500 text-sm">{carte.title}</p>
                   <p className="text-2xl font-bold mt-1">{carte.value}</p>
+                  {carte.subInfo && <p className="text-sm text-gray-500 mt-1">{carte.subInfo}</p>}
                 </div>
               </div>
             </motion.div>
