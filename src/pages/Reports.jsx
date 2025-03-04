@@ -100,7 +100,9 @@ const Reports = () => {
                   month: 'long', 
                   year: 'numeric' 
                 }) 
-              : entry.week || entry.month
+              : timePeriod === 'weekly' 
+                ? `Semaine ${entry.week}`
+                : new Date(2024, entry.month - 1, 1).toLocaleDateString('fr-FR', { month: 'long' })
           ),
           datasets: [{
             label: 'Ventes',
